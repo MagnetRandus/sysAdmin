@@ -1,0 +1,36 @@
+{
+  "name": "dev-addon-fetch-listnames",
+  "version": "0.0.1",
+  "description": "Create a readable type from the names of lists on a SharePoint Site",
+  "main": "dist/main.js",
+  "engines": {
+    "node": ">=18.18.0 <19.0.0"
+  },
+  "scripts": {
+    "build": "tsc && nodemon --inspect=9229 dist/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MagnetRandus/randus-sp-listnames.git"
+  },
+  "keywords": [
+    "SharePoint"
+  ],
+  "bin": {
+    "addon": "dist/main.js"
+  },
+  "type": "module",
+  "author": "MagnetRandus",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/msal-node": "^2.7.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/node": "^20.12.4",
+    "@types/request-promise": "^4.1.51",
+    "nodemon": "^3.1.0"
+  }
+}
