@@ -1,8 +1,10 @@
 import { ConfidentialClientApplication, IConfidentialClientApplication, ClientCredentialRequest, LogLevel } from "@azure/msal-node";
 import { Client } from "@microsoft/microsoft-graph-client";
-import { SysConfig } from "../types/config.js";
+import { SysConfig } from "../interfaces/config.js";
 
-export async function makeGraphCallAsync(sysconfig: SysConfig): Promise<void> {
+import { randusGraphCall } from "../interfaces/graphcall.js";
+
+export async function makeGraphCallAsync<T>(sysconfig: SysConfig): Promise<randusGraphCall<T> | Error> {
   try {
     const config = {
       auth: { ...sysconfig.credentials },
@@ -31,9 +33,11 @@ export async function makeGraphCallAsync(sysconfig: SysConfig): Promise<void> {
       },
     });
     const site = await client.api(`/sites/${sysconfig.spdomain}:/sites/${sysconfig.subsite}`).get();
-    const lists = await client.api(`/sites/${site.id}/lists`).get();
-    console.dir(lists);
-  } catch (error: any) {
-    console.log(JSON.stringify(error));
+    return client.api(`/sites/${site.id}/lists`).get() as Promise<randusGraphCall<T>>;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log(error.message);
+    }
+    return error as Error;
   }
 }

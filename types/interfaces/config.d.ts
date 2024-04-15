@@ -7,4 +7,5 @@ export interface SysConfig {
     credentials: authInfo;
     spdomain: string;
     subsite: string;
+    interface_destination: string;
 }

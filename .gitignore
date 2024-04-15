@@ -135,3 +135,5 @@ apikeys.json
 package-lock.json
 
 /config/config.json
+autotypes
+auto_*

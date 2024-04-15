@@ -1,2 +1,2 @@
-declare const createFile: (filename: string, content: string) => void;
+declare const createFile: (dest: string, content: string) => void;
 export default createFile;

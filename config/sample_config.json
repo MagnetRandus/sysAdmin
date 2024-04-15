@@ -1,5 +1,10 @@
 {
-  "clientId": "X",
-  "authority": "X",
-  "clientSecret": "X"
+  "credentials": {
+    "clientId": "API client id",
+    "authority": "https://login.microsoftonline.com/tenantidguidgoeshere",
+    "clientSecret": "SecretGoesHere"
+  },
+  "spdomain": "##.sharepoint.com",
+  "subsite": "somename",
+  "interface_destination": "./src/interfaces/auto_listnames.ts"
 }
