@@ -18,4 +18,4 @@ async function Main(): Promise<void> {
 }
 
 Main();
-console.log(`DONE DONE`);
+console.log(`DONE DONE!`);
