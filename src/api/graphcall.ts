@@ -4,34 +4,37 @@ import { SysConfig } from "../interfaces/config.js";
 
 import { randusGraphCall } from "../interfaces/graphcall.js";
 
-export async function makeGraphCallAsync<T>(sysconfig: SysConfig): Promise<randusGraphCall<T> | Error> {
-  try {
-    const config = {
-      auth: { ...sysconfig.credentials },
-      system: {
-        loggerOptions: {
-          loggerCallback(loglevel: LogLevel, message: string, containsPii: boolean) {
-            console.log(message);
-          },
-          piiLoggingEnabled: false,
-          logLevel: LogLevel.Info,
+export async function getGraphClient(sysconfig: SysConfig): Promise<Client> {
+  const config = {
+    auth: { ...sysconfig.credentials },
+    system: {
+      loggerOptions: {
+        loggerCallback(loglevel: LogLevel, message: string, containsPii: boolean) {
+          console.log(message);
         },
+        piiLoggingEnabled: false,
+        logLevel: LogLevel.Info,
       },
-    };
+    },
+  };
 
-    const cca: IConfidentialClientApplication = new ConfidentialClientApplication(config);
+  const cca: IConfidentialClientApplication = new ConfidentialClientApplication(config);
 
-    const clientCredentialRequest: ClientCredentialRequest = {
-      scopes: ["https://graph.microsoft.com/.default"], // replace with your resource
-    };
+  const clientCredentialRequest: ClientCredentialRequest = {
+    scopes: ["https://graph.microsoft.com/.default"], // replace with your resource
+  };
 
-    const response = await cca.acquireTokenByClientCredential(clientCredentialRequest);
+  const response = await cca.acquireTokenByClientCredential(clientCredentialRequest);
 
-    const client = Client.init({
-      authProvider: done => {
-        done(null, response!.accessToken);
-      },
-    });
+  return Client.init({
+    authProvider: done => {
+      done(null, response!.accessToken);
+    },
+  });
+}
+
+export async function makeGraphCallAsync<T>(sysconfig: SysConfig, client: Client): Promise<randusGraphCall<T> | Error> {
+  try {
     const site = await client.api(`/sites/${sysconfig.spdomain}:/sites/${sysconfig.subsite}`).get();
     return client.api(`/sites/${site.id}/lists`).get() as Promise<randusGraphCall<T>>;
   } catch (error) {
