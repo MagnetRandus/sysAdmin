@@ -1,8 +1,8 @@
 import { ConfidentialClientApplication, IConfidentialClientApplication, ClientCredentialRequest, LogLevel } from "@azure/msal-node";
 import { Client } from "@microsoft/microsoft-graph-client";
-import { SysConfig } from "../interfaces/config.js";
+import { SysConfig } from "../interfaces/i-config.js";
 
-import { randusGraphCall } from "../interfaces/graphcall.js";
+import { randusGraphCall } from "../interfaces/i-graphcall.js";
 
 export async function getGraphClient(sysconfig: SysConfig): Promise<Client> {
   const config = {

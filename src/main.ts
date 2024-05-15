@@ -1,42 +1,55 @@
-import readFile from "./api/readfile.js";
+import readFile from "./api/local/readfile.js";
 import { sep } from "path";
-import { SysConfig } from "./interfaces/config.js";
-import { getGraphClient, makeGraphCallAsync } from "./api/graphcall.js";
+import { SysConfig } from "./interfaces/i-config.js";
+import { getGraphClient } from "./api/graphcall.js";
 import chalk from "chalk";
-import { randusGraphCall } from "./interfaces/graphcall.js";
-import { ILists } from "./interfaces/lists.js";
-import { ISite } from "./interfaces/site.js";
-import { newListCreate } from "./api/graphcall/new-list-create.js";
+import { ISite } from "./interfaces/i-site.js";
+import { addColumn, addList, getList } from "./api/graphcall/sp-ops.js";
+import { addorGetList } from "./api/procedures/ops-lists.js";
+import { GraphError } from "@microsoft/microsoft-graph-client";
 
 const configPath = `${process.cwd()}${sep}config${sep}config.json`; //
 const flSysConfig = JSON.parse(await readFile(configPath)) as SysConfig;
 
 async function Main(): Promise<void> {
-  console.log(`CONFIGPATH: ${configPath}`);
-
   const client = await getGraphClient(flSysConfig);
-
   const siteInf = (await client.api(`/sites/${flSysConfig.spdomain}:/sites/${flSysConfig.subsite}`).get()) as ISite;
 
   if (siteInf instanceof Error) {
-    console.log(chalk.red(siteInf.message));
+    throw new Error(siteInf.message);
   } else {
-    const lstCreate = await newListCreate(client, siteInf.id, "myABCList", [
-      { name: "ACOL", text: {} },
-      { name: "BCOL", text: {} },
-    ]);
-    // const x = (await client.api(`/sites/${siteInf.id}/lists`).get()) as randusGraphCall<ILists>;
+    const { id: ListId } = await addorGetList(siteInf, client, "testListName");
 
-    if (lstCreate instanceof Error) {
-      console.log(chalk.red(lstCreate.message));
-    } else {
-      console.log(`\n\n\n\n\n${JSON.stringify(lstCreate)}\n\n\n\n\n\n`);
-      // colCreate.value.forEach((v, i) => {
-      //   console.log(`LIst Name: [${v.name}] ${v.displayName}`);
-      // });
+    try {
+      const colAdInf = await addColumn(siteInf.id, client, ListId, {
+        name: "ThirdColumn",
+        // text: {
+        //   allowMultipleLines: false,
+        //   appendChangesToExistingText: false,
+        //   linesForEditing: 1,
+        //   maxLength: 255,
+        // },
+        number: {
+          decimalPlaces: "automatic",
+          displayAs: "number",
+        },
+        description: "This is the first column",
+        enforceUniqueValues: false,
+        hidden: false,
+        indexed: false,
+      });
+      console.log(JSON.stringify(colAdInf));
+    } catch (err) {
+      if (err instanceof GraphError) {
+        console.log(`Error Name: ${err.code}`);
+        console.log(`Error Description: ${err.message}`);
+      }
     }
   }
 }
 
-Main();
-console.log(`DONE DONE!`);
+try {
+  Main();
+} catch (err) {
+  if (err instanceof Error) console.log(chalk.red(`Bad bad: ${chalk.yellow(err.message)}`));
+}

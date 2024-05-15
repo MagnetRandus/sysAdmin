@@ -1,4 +1,4 @@
-export interface ILists {
+export interface IList {
   "@odata.context": string;
   createdDateTime: string;
   description: string;
