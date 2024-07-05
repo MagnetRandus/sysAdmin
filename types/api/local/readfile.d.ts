@@ -1,2 +1,2 @@
-declare const readFile: (filename: string) => Promise<string>;
-export default readFile;
+declare const readFromFile: (filename: string) => Promise<string>;
+export default readFromFile;

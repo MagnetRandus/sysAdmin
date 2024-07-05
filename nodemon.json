@@ -1,0 +1,5 @@
+{
+  "ignore": ["node_modules"],
+  "watch": ["dist"],
+  "exec": "node dist/main.js"
+}

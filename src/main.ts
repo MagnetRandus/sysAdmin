@@ -1,54 +1,82 @@
-import readFile from "./api/local/readfile.js";
+import readFromFile from "./api/local/readfile.js";
 import { sep } from "path";
-import { SysConfig } from "./interfaces/i-config.js";
-import { getGraphClient } from "./api/graphcall.js";
+import { sysProps } from "./interfaces/i-config.js";
 import chalk from "chalk";
-import { ISite } from "./interfaces/i-site.js";
-import { addColumn, addList, getList } from "./api/graphcall/sp-ops.js";
 import { addorGetList } from "./api/procedures/ops-lists.js";
-import { GraphError } from "@microsoft/microsoft-graph-client";
+import { gcSiteInfo } from "./api/sp-ops/GetSite.js";
+import { Say } from "./api/local/logger.js";
+import testListName from "./interfaces/fields/testListName.js";
+import createItem from "./api/sp-ops/item/Create.js";
+import { readItems } from "./api/sp-ops/item/read.js";
 
 const configPath = `${process.cwd()}${sep}config${sep}config.json`; //
-const flSysConfig = JSON.parse(await readFile(configPath)) as SysConfig;
+const flSysConfig = JSON.parse(await readFromFile(configPath)) as sysProps;
+
+const structTarget = `${process.cwd()}${sep}struct`;
+// async function Main(): Promise<void> {
+//   const siteInf = await gcSiteInfo();
+
+//   if (siteInf instanceof Error) {
+//     throw new Error(siteInf.message);
+//   } else {
+//     const { id: ListId } = await addorGetList(siteInf, "testListName");
+
+//     try {
+//       const spLists = JSON.parse(await readFromFile(`${structTarget}${sep}SPLists.json`)) as Array<SPList>;
+
+//       spLists.forEach(async itm => {
+//         const { Id: ListGuid } = itm;
+//         const fieldsInfo = JSON.parse(await readFromFile(`${structTarget}${sep}${ListGuid}.json`)) as Array<SPField>;
+//         fieldsInfo.forEach(field => {
+//           Say.gI().Info("SPList", `${field.TypeAsString}-${field.StaticName}`);
+//         });
+//       });
+//     } catch (err) {
+//       if (err instanceof GraphError) {
+//         console.log(`Error Name: ${err.code}`);
+//         console.log(`Error Description: ${err.message}`);
+//       }
+//     }
+//   }
+// }
 
 async function Main(): Promise<void> {
-  const client = await getGraphClient(flSysConfig);
-  const siteInf = (await client.api(`/sites/${flSysConfig.spdomain}:/sites/${flSysConfig.subsite}`).get()) as ISite;
+  const say = Say.gI();
+  const siteInf = await gcSiteInfo();
+
+  const listName = `testListName`;
 
   if (siteInf instanceof Error) {
     throw new Error(siteInf.message);
   } else {
-    const { id: ListId } = await addorGetList(siteInf, client, "testListName");
+    const lstInf = await addorGetList(siteInf, listName);
 
-    try {
-      const colAdInf = await addColumn(siteInf.id, client, ListId, {
-        name: "ThirdColumn",
-        // text: {
-        //   allowMultipleLines: false,
-        //   appendChangesToExistingText: false,
-        //   linesForEditing: 1,
-        //   maxLength: 255,
-        // },
-        number: {
-          decimalPlaces: "automatic",
-          displayAs: "number",
-        },
-        description: "This is the first column",
-        enforceUniqueValues: false,
-        hidden: false,
-        indexed: false,
-      });
-      console.log(JSON.stringify(colAdInf));
-    } catch (err) {
-      if (err instanceof GraphError) {
-        console.log(`Error Name: ${err.code}`);
-        console.log(`Error Description: ${err.message}`);
-      }
+    const rCreateItm = await createItem<testListName>(siteInf, lstInf, {
+      Title: "NEXT TEST",
+      firstColumn: "abc",
+      SecondColumn: "abc",
+      ThirdColumn: 1,
+    });
+
+    if (rCreateItm instanceof Error) {
+      say.Error("createItem", rCreateItm);
+    } else {
+      say.Info("Create Item", `ID:${rCreateItm.id}`);
+    }
+
+    const rReadItems = await readItems<testListName>(siteInf, lstInf);
+    if (rReadItems instanceof Error) {
+      say.Error("rReadItems", rReadItems);
+    } else {
+      say.Info("Read Items", JSON.stringify(rReadItems));
+
+      rReadItems.value[0];
     }
   }
 }
 
 try {
+  Say.gI().Info("main.js", "START");
   Main();
 } catch (err) {
   if (err instanceof Error) console.log(chalk.red(`Bad bad: ${chalk.yellow(err.message)}`));

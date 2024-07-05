@@ -3,7 +3,7 @@ export interface authInfo {
     clientId: string;
     clientSecret: string;
 }
-export interface SysConfig {
+export interface sysProps {
     credentials: authInfo;
     spdomain: string;
     subsite: string;
